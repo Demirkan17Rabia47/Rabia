@@ -12,10 +12,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
     
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         html, body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: #000000;
+            color: #f1f5f9;
             width: 100%;
+            min-height: 100vh;
             min-height: 100dvh;
             margin: 0;
             padding: 0;
@@ -24,7 +30,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Gönderilen görselin birebir sabit tam ekran arka plan katmanı */
+        /* 1. Bölüm ve Sonuç Ekranı Arka Plan Katmanı */
         .custom-bg-art {
             position: fixed;
             inset: 0;
@@ -35,6 +41,18 @@
             justify-content: center;
             pointer-events: none;
             overflow: hidden;
+            transition: opacity 0.6s ease;
+        }
+
+        .custom-bg-art img {
+            width: 100%;
+            height: 100%;
+            max-width: 780px;
+            max-height: 780px;
+            object-fit: contain;
+            object-position: center center;
+            opacity: 0.85;
+            display: block;
         }
 
         .custom-bg-art svg {
@@ -43,28 +61,28 @@
             max-width: 760px;
             max-height: 760px;
             opacity: 0.72;
-            transition: opacity 0.6s ease;
         }
 
-        /* 2. Bölüm (Demirkan) için özel arka plan katmanı */
-        .demirkan-bg-art {
+        /* Bölüm arka plan katmanları */
+        .section-bg-art {
             position: fixed;
             inset: 0;
             width: 100%;
+            height: 100vh;
             height: 100dvh;
             z-index: 0;
-            background-color: #000000;
+            background: radial-gradient(circle at top right, #1e1b4b, #09090b 70%);
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.7s ease;
             overflow: hidden;
         }
 
-        .demirkan-bg-art.active {
+        .section-bg-art.active {
             opacity: 1;
         }
 
-        .demirkan-bg-art img {
+        .section-bg-art img {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -72,43 +90,30 @@
             display: block;
         }
 
-        .demirkan-bg-overlay {
+        .section-bg-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.62));
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.65));
             pointer-events: none;
         }
 
         .font-serif-romantic {
-            font-family: 'Playfair Display', serif;
-        }
-
-        /* Cam efekti (Glassmorphism) kart - Arka plan çiziminin görünmesi için dengeli şeffaflık */
-        .glass-card {
-            background: rgba(15, 15, 22, 0.58);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
-        }
-
-        .font-serif-romantic {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Playfair Display', Georgia, serif;
         }
 
         /* Cam efekti (Glassmorphism) kart */
         .glass-card {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: rgba(15, 15, 22, 0.60);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             border: 1px solid rgba(255, 255, 255, 0.16);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
         }
 
         /* Şık butonları için geçiş ve dokunma animasyonu */
         .option-btn {
             background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.14);
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -166,28 +171,24 @@
         }
 
         /* Bölümler arası 3D Kart Geçiş Efekti */
-        .perspective-container {
-            perspective: 1200px;
-        }
-
         @keyframes cardFlipTransition {
             0% {
                 opacity: 0;
-                transform: rotateY(-75deg) scale(0.9) translateY(20px);
+                transform: perspective(1200px) rotateY(-65deg) scale(0.92) translateY(16px);
             }
             60% {
                 opacity: 1;
-                transform: rotateY(8deg) scale(1.02) translateY(0);
+                transform: perspective(1200px) rotateY(6deg) scale(1.01) translateY(0);
             }
             100% {
                 opacity: 1;
-                transform: rotateY(0deg) scale(1) translateY(0);
+                transform: perspective(1200px) rotateY(0deg) scale(1) translateY(0);
             }
         }
 
         .animate-card-flip {
             transform-style: preserve-3d;
-            animation: cardFlipTransition 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: cardFlipTransition 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
     </style>
 </head>
@@ -196,9 +197,14 @@
     <!-- Kalp Efektleri Sahnesi -->
     <div id="heart-stage" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
 
-    <!-- Sabit Tam Ekran Arka Plan Görseli (Siyah Zemin Üzerinde Mavi & Pembe Işıltılı Oklu Kalpler) -->
+    <!-- 1. Bölüm ve Sonuç Ekranı Arka Plan Görseli (WhatsApp Image 2026-11-16 at 22.22.25.jpeg) -->
     <div id="default-bg-art" class="custom-bg-art" aria-hidden="true">
-        <svg viewBox="0 0 750 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <img id="default-bg-img"
+             src="./WhatsApp%20Image%202026-11-16%20at%2022.22.25.jpeg"
+             data-fallbacks="./rabia.jpg,./rabia.jpeg,./rabia.png"
+             alt=""
+             onerror="handleDefaultBgFallback(this)">
+        <svg id="default-bg-svg" class="hidden" viewBox="0 0 750 720" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <filter id="blueGlow" x="-40%" y="-40%" width="180%" height="180%">
                     <feGaussianBlur stdDeviation="28" result="blur" />
@@ -207,65 +213,52 @@
                     <feGaussianBlur stdDeviation="26" result="blur" />
                 </filter>
             </defs>
-
-            <!-- Sol Alt Büyük Kalbin Mavi Parıltısı -->
             <g filter="url(#blueGlow)" opacity="0.72">
                 <path d="M335 320 C320 220, 225 190, 225 275 C225 365, 315 480, 330 570 C365 480, 445 360, 430 265 C415 195, 345 230, 335 320 Z" fill="#1d63b8" />
                 <path d="M135 550 Q180 485 230 465 M385 375 Q485 360 545 375 C570 385 575 435 540 500" stroke="#1d63b8" stroke-width="46" stroke-linecap="round" />
             </g>
-
-            <!-- Sağ Üst Küçük Kalbin Pembe/Bej Parıltısı -->
             <g filter="url(#pinkGlow)" opacity="0.62">
                 <path d="M555 128 C535 72, 460 80, 465 135 C470 190, 535 235, 550 260 C585 225, 645 165, 642 112 C638 68, 572 78, 555 128 Z" fill="#b89894" />
                 <path d="M435 215 L535 175 M570 165 L715 152 M675 82 C705 110, 725 165, 700 225" stroke="#b89894" stroke-width="34" stroke-linecap="round" />
             </g>
-
-            <!-- Sol Alt Büyük Beyaz Kalp ve Ok Çizimi -->
             <g stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M334 328 C318 220, 225 192, 225 278 C225 365, 315 478, 332 562" stroke-width="21" />
                 <path d="M332 328 C345 235, 412 198, 426 268 C442 355, 372 475, 326 655" stroke-width="21" />
-                <!-- Okun sol arka kuyruğu -->
                 <path d="M138 548 Q182 486 228 466" stroke-width="7" />
-                <!-- Okun sağ ucu ve yayı -->
                 <path d="M388 376 Q485 362 542 376" stroke-width="7" />
                 <path d="M524 360 C562 372, 578 415, 542 496" stroke-width="7" />
             </g>
-
-            <!-- Sağ Üst Küçük Beyaz Kalp ve Ok Çizimi -->
             <g stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M554 128 C536 74, 462 82, 466 136 C470 188, 534 232, 550 256 C584 222, 644 164, 640 112 C636 70, 572 80, 554 128 Z" stroke-width="8.5" />
-                <!-- Okun sol parçası -->
                 <path d="M438 214 L536 176" stroke-width="6.5" />
-                <!-- Okun sağ parçası -->
                 <path d="M572 164 L714 152" stroke-width="6.5" />
-                <!-- Sağ yay çizgisi -->
                 <path d="M676 84 C706 112, 724 166, 698 224" stroke-width="6.5" />
             </g>
         </svg>
     </div>
 
     <!-- 2. Bölüm Arka Plan Görseli (Demirkan) -->
-    <div id="demirkan-bg-art" class="demirkan-bg-art" aria-hidden="true">
-        <img id="demirkan-bg-img" src="WhatsApp Image 2026-11-16 at 22.23.52.jpeg" alt="Demirkan Arka Plan">
-        <div class="demirkan-bg-overlay"></div>
+    <div id="demirkan-bg-art" class="section-bg-art" aria-hidden="true">
+        <img src="./WhatsApp%20Image%202026-11-16%20at%2022.23.52.jpeg" data-fallbacks="./demirkan.jpg,./demirkan.jpeg,./demirkan.png" alt="" onerror="handleImageFallback(this)">
+        <div class="section-bg-overlay"></div>
     </div>
 
-    <!-- 3. Bölüm Arka Plan Görseli (İlişkimiz Hakkında - İki Kurt) -->
-    <div id="iliskimiz-bg-art" class="demirkan-bg-art" aria-hidden="true">
-        <img src="7c787723-9e3c-4629-86e0-e5b0e1118d26.jpg" alt="İlişkimiz Arka Plan">
-        <div class="demirkan-bg-overlay"></div>
+    <!-- 3. Bölüm Arka Plan Görseli (İlişkimiz Hakkında) -->
+    <div id="iliskimiz-bg-art" class="section-bg-art" aria-hidden="true">
+        <img src="./7c787723-9e3c-4629-86e0-e5b0e1118d26.jpg" data-fallbacks="./iliskimiz.jpg,./iliskimiz.jpeg,./iliskimiz.png" alt="" onerror="handleImageFallback(this)">
+        <div class="section-bg-overlay"></div>
     </div>
 
     <!-- 4. Bölüm Arka Plan Görseli (Geleceğimiz Hakkında) -->
-    <div id="gelecegimiz-bg-art" class="demirkan-bg-art" aria-hidden="true">
-        <img id="gelecegimiz-bg-img" src="82322b1caa2b928f81f714672a099cf0.jpg" data-fallbacks="82322b1caa2b928f81f714672a099cf0.jpeg,82322b1caa2b928f81f714672a099cf0.png,WhatsApp Image 2026-11-16 at 22.25.00.jpeg" onerror="const list=(this.dataset.fallbacks||'').split(',').filter(Boolean); if(list.length){ this.src=list.shift(); this.dataset.fallbacks=list.join(','); } else { this.onerror=null; }" alt="Geleceğimiz Arka Plan">
-        <div class="demirkan-bg-overlay"></div>
+    <div id="gelecegimiz-bg-art" class="section-bg-art" aria-hidden="true">
+        <img src="./82322b1caa2b928f81f714672a099cf0.jpg" data-fallbacks="./gelecegimiz.jpg,./gelecegimiz.jpeg,./gelecegimiz.png,./WhatsApp%20Image%202026-11-16%20at%2022.25.00.jpeg" alt="" onerror="handleImageFallback(this)">
+        <div class="section-bg-overlay"></div>
     </div>
 
     <!-- 4. Bölüm Müziği (yingyang) -->
-    <audio id="yingyang-audio" preload="auto" loop></audio>
+    <audio id="yingyang-audio" preload="none" loop></audio>
 
-    <!-- Sağ Üst Mini Ses Ayar Penceresi (4. Bölümde Parça Çalmaya Başladığında Görünür) -->
+    <!-- Sağ Üst Mini Ses Ayar Penceresi -->
     <div id="audio-control-widget" class="hidden fixed top-4 right-4 z-50 glass-card rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5 shadow-xl border border-white/20 transition-all duration-300">
         <button id="vol-down-btn" type="button" aria-label="Sesi Azalt" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white font-bold text-base transition cursor-pointer">
             −
@@ -284,7 +277,7 @@
         </button>
     </div>
 
-    <!-- Küçültülmüş Ses Açma Butonu (✕ Tuşuna Basınca Sağ Üstte Belirir) -->
+    <!-- Küçültülmüş Ses Açma Butonu -->
     <button id="reopen-audio-widget-btn" type="button" aria-label="Ses Ayarlarını Aç" class="hidden fixed top-4 right-4 z-50 glass-card w-11 h-11 rounded-2xl flex items-center justify-center text-rose-300 hover:text-white hover:bg-white/15 active:scale-95 shadow-xl border border-white/20 transition-all duration-300 cursor-pointer">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
             <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
@@ -305,7 +298,7 @@
         <!-- Test Kartı -->
         <section id="quiz-card" class="glass-card rounded-3xl p-6 sm:p-8 transition-all duration-300">
             
-            <!-- Bölüm Bilgisi ve İlerleme Çubuğu (1/5 - 5/5) -->
+            <!-- Bölüm Bilgisi ve İlerleme Çubuğu -->
             <div id="progress-container" class="mb-6">
                 <div class="flex flex-wrap justify-between items-center gap-2 text-xs sm:text-sm text-slate-300 mb-2.5 font-medium">
                     <span id="section-badge" class="px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/30 text-rose-200 font-semibold">
@@ -322,17 +315,11 @@
 
             <!-- Soru Alanı -->
             <div id="question-view" class="animate-question">
-                <h2 id="question-text" class="font-serif-romantic text-xl sm:text-2xl font-semibold text-white leading-snug mb-6">
-                    <!-- Soru metni JS ile yüklenecek -->
-                </h2>
-
-                <!-- Şıklar Listesi -->
-                <div id="options-list" class="space-y-3">
-                    <!-- Şıklar JS ile oluşturulacak -->
-                </div>
+                <h2 id="question-text" class="font-serif-romantic text-xl sm:text-2xl font-semibold text-white leading-snug mb-6"></h2>
+                <div id="options-list" class="space-y-3"></div>
             </div>
 
-            <!-- Bölümler Arası Kart Geçiş Ekranı (Başlangıçta Gizli) -->
+            <!-- Bölümler Arası Kart Geçiş Ekranı -->
             <div id="transition-view" class="hidden text-center py-6 sm:py-8">
                 <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-rose-500/20 to-blue-500/20 border border-white/25 flex items-center justify-center shadow-lg">
                     <svg class="w-8 h-8 text-rose-300" viewBox="0 0 24 24" fill="currentColor">
@@ -342,12 +329,8 @@
                 <span id="transition-step-badge" class="text-xs uppercase tracking-widest text-rose-300 font-semibold">
                     Sıradaki Bölüm
                 </span>
-                <h2 id="transition-title" class="font-serif-romantic text-2xl sm:text-3xl font-bold text-white mt-2 mb-3">
-                    <!-- Sonraki Bölüm Başlığı -->
-                </h2>
-                <p id="transition-subtitle" class="text-slate-300 text-sm sm:text-base max-w-md mx-auto leading-relaxed mb-7">
-                    <!-- Bölüm Açıklaması -->
-                </p>
+                <h2 id="transition-title" class="font-serif-romantic text-2xl sm:text-3xl font-bold text-white mt-2 mb-3"></h2>
+                <p id="transition-subtitle" class="text-slate-300 text-sm sm:text-base max-w-md mx-auto leading-relaxed mb-7"></p>
                 <button id="continue-section-btn" type="button" class="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-semibold text-sm sm:text-base shadow-lg shadow-rose-900/40 transition active:scale-95 cursor-pointer">
                     Sorulara Geç →
                 </button>
@@ -376,7 +359,7 @@
                 </button>
             </div>
 
-            <!-- Sonuç Ekranı (Başlangıçta Gizli - Kalp renk geçmişi kaldırıldı) -->
+            <!-- Sonuç Ekranı -->
             <div id="result-view" class="hidden text-center animate-question">
                 <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shadow-lg">
                     <svg id="result-icon" class="w-9 h-9 text-rose-500" viewBox="0 0 24 24" fill="currentColor">
@@ -384,12 +367,8 @@
                     </svg>
                 </div>
 
-                <h2 id="result-title" class="font-serif-romantic text-2xl sm:text-3xl font-bold text-white mt-1 mb-2">
-                    <!-- Sonuç Başlığı -->
-                </h2>
-                <p id="result-tagline" class="text-rose-300 text-xs sm:text-sm font-medium italic mb-4">
-                    <!-- Vurucu Alt Başlık -->
-                </p>
+                <h2 id="result-title" class="font-serif-romantic text-2xl sm:text-3xl font-bold text-white mt-1 mb-2"></h2>
+                <p id="result-tagline" class="text-rose-300 text-xs sm:text-sm font-medium italic mb-4"></p>
                 
                 <div class="text-left text-slate-200 text-sm sm:text-base leading-relaxed mb-6 bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3">
                     <p class="text-rose-100/95 text-sm sm:text-base leading-relaxed italic">
@@ -423,9 +402,32 @@
     </main>
 
     <script>
-        // ==========================================
-        // 1. İZİN VERİLEN 4 KALP RENGİ (SİYAH, BEYAZ, MAVİ, KIRMIZI)
-        // ==========================================
+        // 1. bölüm görseli bulunamazsa alternatifleri dener, hiçbiri yoksa yedek SVG çizimini gösterir
+        function handleDefaultBgFallback(imgEl) {
+            const list = (imgEl.dataset.fallbacks || '').split(',').filter(Boolean);
+            if (list.length > 0) {
+                imgEl.src = list.shift();
+                imgEl.dataset.fallbacks = list.join(',');
+            } else {
+                imgEl.onerror = null;
+                imgEl.style.display = 'none';
+                const svgEl = document.getElementById('default-bg-svg');
+                if (svgEl) svgEl.classList.remove('hidden');
+            }
+        }
+
+        // Diğer bölümlerin görselleri bulunamazsa alternatifleri dener, hiçbiri yoksa kırık ikon yerine gizler
+        function handleImageFallback(imgEl) {
+            const list = (imgEl.dataset.fallbacks || '').split(',').filter(Boolean);
+            if (list.length > 0) {
+                imgEl.src = list.shift();
+                imgEl.dataset.fallbacks = list.join(',');
+            } else {
+                imgEl.onerror = null;
+                imgEl.style.display = 'none';
+            }
+        }
+
         const ALLOWED_HEART_COLORS = [
             { hex: '#111111', stroke: 'rgba(255, 255, 255, 0.55)', glow: 'drop-shadow(0 0 6px rgba(255, 255, 255, 0.35))' },
             { hex: '#FFFFFF', stroke: 'rgba(0, 0, 0, 0.15)', glow: 'drop-shadow(0 4px 10px rgba(255, 255, 255, 0.45))' },
@@ -433,9 +435,6 @@
             { hex: '#E11D48', stroke: 'rgba(255, 255, 255, 0.25)', glow: 'drop-shadow(0 4px 10px rgba(225, 29, 72, 0.5))' }
         ];
 
-        // ==========================================
-        // 2. 4 BÖLÜM x 5 SORU = TOPLAM 20 ROMANTİK SORU (ONEDİO TEST FORMATI)
-        // ==========================================
         const QUIZ_SECTIONS = [
             {
                 id: 'rabia',
@@ -650,14 +649,10 @@
             }
         ];
 
-        // ==========================================
-        // 3. ONEDİO TESTİ SONUÇ ARKETİPLERİ (4 FARKLI SONUÇ)
-        // ==========================================
         const ONEDIO_RESULTS = {
             kader: {
                 title: "Kaderin Mühürlediği Efsane Aşk",
                 tagline: "“Tesadüf diye bir şey yok, her adım ikinizi birbirinize yazdı.”",
-                description: "Verdiğiniz cevaplar gösteriyor ki Rabia ve Demirkan’ın hikayesi sıradan bir karşılaşma değil; en ince detayına kadar birbirini tamamlayan bir kader örgüsü. İlk andan itibaren kurduğunuz o görünmez bağ, her sınavda daha da güçlenerek sizi sarsılmaz bir bütüne dönüştürüyor.",
                 motto: "İmza: Tek Ruh, İki Kalp",
                 matchRate: "%100 Kader Uyumu",
                 iconColor: "#E11D48"
@@ -665,7 +660,6 @@
             tutku: {
                 title: "Ruh Eşi ve Tutku Fırtınası",
                 tagline: "“Bakışlarınız bile tek başına koca bir hikaye anlatıyor.”",
-                description: "Sizin aşkınızda heyecan, derinlik ve karşı konulmaz bir çekim var. Birbirinizin zaafı ve en büyük gücü olmuşsunuz. Aranızdaki enerji etrafınızdaki her şeyi aydınlatırken, kalbinizin ritmi her buluşmada ilk günkü kadar hızlı atıyor.",
                 motto: "İmza: Sonsuz Kıvılcım",
                 matchRate: "%100 Tutku Uyumu",
                 iconColor: "#111111"
@@ -673,7 +667,6 @@
             iyiles: {
                 title: "Birbirini İyileştiren Derin Bağ",
                 tagline: "“En güvenli liman, birbirinizin kalbinde bulduğunuz huzur.”",
-                description: "Rabia ve Demirkan birbirine sadece aşık değil, aynı zamanda en iyi şifa kaynağı. Geçmişin tüm yorgunluklarını ve sessizliklerini sevginizle aşmış, birbirinize koşulsuz güvenen sıcacık bir yuva kurmuşsunuz.",
                 motto: "İmza: Huzur ve Güven",
                 matchRate: "%100 Ruh Uyumu",
                 iconColor: "#2563EB"
@@ -681,24 +674,19 @@
             sonsuz: {
                 title: "Zamanın Ötesinde Sonsuz Yolculuk",
                 tagline: "“Bugün, yarın ve her zaman el ele yürüyecek bir hikaye.”",
-                description: "Sizin hikayeniz sadece bugünü değil, önünüzdeki bütün yılları kucaklıyor. Hayalleriniz, hedefleriniz ve birbirinize olan sarsılmaz inancınız sayesinde zaman geçtikçe değerlenen, ömürlük bir aşka imza atıyorsunuz.",
                 motto: "İmza: Ömürlük Yol Arkadaşlığı",
                 matchRate: "%100 Gelecek Uyumu",
                 iconColor: "#FFFFFF"
             }
         };
 
-        // ==========================================
-        // 4. UYGULAMA DURUMU (STATE) VE BAŞLATMA
-        // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
-            let currentSectionIndex = 0; // 0: Rabia, 1: Demirkan, 2: İlişkimiz, 3: Geleceğimiz
-            let currentQuestionInSection = 0; // 0..4 (1/5 .. 5/5)
+            let currentSectionIndex = 0;
+            let currentQuestionInSection = 0;
             let scores = { kader: 0, tutku: 0, iyiles: 0, sonsuz: 0 };
             let demirkanWrongCount = 0;
             let isTransitioning = false;
 
-            // DOM Elemanları
             const heartStage = document.getElementById('heart-stage');
             const yingyangAudio = document.getElementById('yingyang-audio');
             const audioControlWidget = document.getElementById('audio-control-widget');
@@ -764,9 +752,7 @@
             if (closeAudioWidgetBtn && audioControlWidget) {
                 closeAudioWidgetBtn.addEventListener('click', () => {
                     audioControlWidget.classList.add('hidden');
-                    if (reopenAudioWidgetBtn) {
-                        reopenAudioWidgetBtn.classList.remove('hidden');
-                    }
+                    if (reopenAudioWidgetBtn) reopenAudioWidgetBtn.classList.remove('hidden');
                 });
             }
 
@@ -779,24 +765,24 @@
 
             function playYingyangAudio() {
                 if (!yingyangAudio) return;
-                const candidates = ['yingyang.mp3', 'yingyang.wav', 'yingyang.m4a', 'yingyang.ogg', 'yingyang'];
+                const candidates = ['./yingyang.mp3', './yingyang.m4a', './yingyang.wav', './yingyang.ogg'];
                 let idx = 0;
 
                 yingyangAudio.volume = 0.8;
                 updateVolumeDisplay();
-                if (audioControlWidget) {
-                    audioControlWidget.classList.remove('hidden');
-                }
-                if (reopenAudioWidgetBtn) {
-                    reopenAudioWidgetBtn.classList.add('hidden');
-                }
 
                 const tryNextSource = () => {
-                    if (idx >= candidates.length) return;
+                    if (idx >= candidates.length) {
+                        if (audioControlWidget) audioControlWidget.classList.add('hidden');
+                        return;
+                    }
                     yingyangAudio.src = candidates[idx++];
                     const playPromise = yingyangAudio.play();
                     if (playPromise !== undefined) {
-                        playPromise.catch(() => {
+                        playPromise.then(() => {
+                            if (audioControlWidget) audioControlWidget.classList.remove('hidden');
+                            if (reopenAudioWidgetBtn) reopenAudioWidgetBtn.classList.add('hidden');
+                        }).catch(() => {
                             tryNextSource();
                         });
                     }
@@ -808,12 +794,8 @@
             }
 
             function stopYingyangAudio() {
-                if (audioControlWidget) {
-                    audioControlWidget.classList.add('hidden');
-                }
-                if (reopenAudioWidgetBtn) {
-                    reopenAudioWidgetBtn.classList.add('hidden');
-                }
+                if (audioControlWidget) audioControlWidget.classList.add('hidden');
+                if (reopenAudioWidgetBtn) reopenAudioWidgetBtn.classList.add('hidden');
                 if (!yingyangAudio) return;
                 yingyangAudio.pause();
                 yingyangAudio.currentTime = 0;
@@ -838,9 +820,6 @@
                 }
             }
 
-            // ==========================================
-            // 5. KALP EFEKTİ OLUŞTURMA FONKSİYONU
-            // ==========================================
             function triggerRandomHearts(originX, originY, count = 20, options = {}) {
                 if (!heartStage) return;
 
@@ -848,8 +827,8 @@
                 const isSectionOne = currentSectionIndex === 0 && !questionView.classList.contains('hidden');
                 const isSectionThree = currentSectionIndex === 2 && !questionView.classList.contains('hidden');
                 const isSectionFour = currentSectionIndex === 3 && !questionView.classList.contains('hidden');
-                const sectionThreeSymbols = ['𓆩🖤𓆪', '𓆩🤍𓆪'];
-                const specialSymbols = ['☯︎', '𓆩🖤𓆪', '𓆩🤍𓆪'];
+                const sectionThreeSymbols = ['🖤', '🤍'];
+                const specialSymbols = ['☯', '🖤', '🤍'];
 
                 for (let i = 0; i < count; i++) {
                     const heartWrapper = document.createElement('div');
@@ -888,7 +867,6 @@
                     } else if (isSectionThree) {
                         const symbol = sectionThreeSymbols[Math.floor(Math.random() * sectionThreeSymbols.length)];
                         heartWrapper.style.fontSize = `${size + 4}px`;
-                        heartWrapper.style.color = '#ffffff';
                         heartWrapper.style.whiteSpace = 'nowrap';
                         heartWrapper.style.filter = 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.45))';
                         heartWrapper.textContent = symbol;
@@ -897,7 +875,7 @@
                         heartWrapper.style.color = '#ffffff';
                         heartWrapper.style.whiteSpace = 'nowrap';
                         heartWrapper.style.filter = 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.55))';
-                        heartWrapper.textContent = '☯︎';
+                        heartWrapper.textContent = '☯';
                     } else if (isCelebrate && Math.random() < 0.5) {
                         const symbol = specialSymbols[Math.floor(Math.random() * specialSymbols.length)];
                         heartWrapper.style.fontSize = `${size + 5}px`;
@@ -906,7 +884,6 @@
                         heartWrapper.style.filter = 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))';
                         heartWrapper.textContent = symbol;
                     } else {
-                        // Diğer durumlarda yalnızca Siyah, Beyaz, Mavi, Kırmızı arasından rastgele seçim
                         const randomColor = ALLOWED_HEART_COLORS[Math.floor(Math.random() * ALLOWED_HEART_COLORS.length)];
                         heartWrapper.style.filter = randomColor.glow;
                         heartWrapper.innerHTML = `
@@ -917,42 +894,31 @@
                     }
 
                     heartStage.appendChild(heartWrapper);
-
-                    heartWrapper.addEventListener('animationend', () => {
-                        heartWrapper.remove();
-                    });
+                    heartWrapper.addEventListener('animationend', () => heartWrapper.remove());
                 }
             }
 
-            // ==========================================
-            // 6. KART GEÇİŞ ANİMASYONU YARDIMCISI
-            // ==========================================
             function playCardFlipAnimation() {
                 if (!quizCard) return;
                 quizCard.classList.remove('animate-card-flip');
-                void quizCard.offsetWidth; // Reflow tetikle
+                void quizCard.offsetWidth;
                 quizCard.classList.add('animate-card-flip');
             }
 
-            // ==========================================
-            // 7. SORU RENDER VE SEÇİM YÖNETİMİ
-            // ==========================================
             function renderQuestion() {
                 const currentSection = QUIZ_SECTIONS[currentSectionIndex];
                 if (!currentSection) return;
                 const currentQ = currentSection.questions[currentQuestionInSection];
                 if (!currentQ) return;
 
-                const totalInSection = currentSection.questions.length; // 5
+                const totalInSection = currentSection.questions.length;
 
-                // Bölüm başlığı ve 1/5 - 5/5 sayacını güncelle
                 if (sectionBadge) sectionBadge.textContent = `${currentSection.stepLabel}: ${currentSection.title}`;
                 if (questionCounter) questionCounter.textContent = `Soru ${currentQuestionInSection + 1} / ${totalInSection}`;
                 
                 const progressPercent = ((currentQuestionInSection + 1) / totalInSection) * 100;
                 if (progressBar) progressBar.style.width = `${progressPercent}%`;
 
-                // Soru giriş animasyonunu yenile
                 if (questionView) {
                     questionView.classList.remove('animate-question');
                     void questionView.offsetWidth;
@@ -976,7 +942,7 @@
                         if (currentQ.isTwoOptionCentered || currentQ.options.length === 2) {
                             btn.className = 'option-btn w-full sm:w-44 py-4 px-6 rounded-2xl flex items-center justify-center gap-3 text-slate-100 group cursor-pointer font-semibold';
                         } else {
-                            btn.className = 'option-btn w-full text-left p-4 sm:p-4.5 rounded-2xl flex items-center gap-3.5 text-slate-100 group cursor-pointer';
+                            btn.className = 'option-btn w-full text-left p-4 rounded-2xl flex items-center gap-3.5 text-slate-100 group cursor-pointer';
                         }
                         
                         const letters = ['A', 'B', 'C', 'D'];
@@ -1006,22 +972,17 @@
                 btnElement.style.background = 'rgba(255, 255, 255, 0.22)';
                 btnElement.style.borderColor = 'rgba(255, 255, 255, 0.5)';
 
-                // 2. Bölümde (Demirkan) doğru cevapta 💞, yanlış cevapta ❌️ uçuşsun ve yanlış sayısı kaydedilsin
                 let sectionTwoSymbol = null;
                 if (currentSectionIndex === 1) {
                     if (option.isCorrect) {
                         sectionTwoSymbol = '💞';
                     } else {
-                        sectionTwoSymbol = '❌️';
+                        sectionTwoSymbol = '❌';
                         demirkanWrongCount++;
                     }
                 }
 
-                triggerRandomHearts(clickX, clickY, 22, {
-                    customSymbol: sectionTwoSymbol
-                });
-
-                // Seçilen şıkkın ait olduğu Onedio arketipine puan ekle (doğru/yanlış yok)
+                triggerRandomHearts(clickX, clickY, 22, { customSymbol: sectionTwoSymbol });
                 scores[option.archetype] = (scores[option.archetype] || 0) + 1;
 
                 setTimeout(() => {
@@ -1029,18 +990,14 @@
                     const currentSection = QUIZ_SECTIONS[currentSectionIndex];
 
                     if (currentQuestionInSection < currentSection.questions.length) {
-                        // Aynı bölüm içindeki sonraki soruya geç
                         renderQuestion();
                     } else {
-                        // Bölümdeki 5 soru bitti -> Sıradaki bölüm var mı kontrol et
                         currentSectionIndex++;
                         currentQuestionInSection = 0;
 
                         if (currentSectionIndex < QUIZ_SECTIONS.length) {
-                            // Bölümler arası kart geçiş ekranını göster
                             showSectionTransition(QUIZ_SECTIONS[currentSectionIndex]);
                         } else {
-                            // 4 bölüm (20 soru) tamamlandı -> Sonuç ekranını göster
                             showResults();
                         }
                     }
@@ -1048,9 +1005,6 @@
                 }, 600);
             }
 
-            // ==========================================
-            // 8. BÖLÜMLER ARASI KART GEÇİŞ EKRANI
-            // ==========================================
             function showSectionTransition(nextSection) {
                 if (!nextSection) return;
                 updateBackgroundForSection(currentSectionIndex);
@@ -1071,7 +1025,7 @@
             }
 
             if (continueSectionBtn) {
-                continueSectionBtn.addEventListener('click', (e) => {
+                continueSectionBtn.addEventListener('click', () => {
                     const rect = continueSectionBtn.getBoundingClientRect();
                     triggerRandomHearts(rect.left + rect.width / 2, rect.top, 16);
 
@@ -1084,9 +1038,6 @@
                 });
             }
 
-            // ==========================================
-            // 9. ONEDİO SONUÇ HESAPLAMA VE GÖSTERİMİ
-            // ==========================================
             function showResults() {
                 updateBackgroundForSection(0);
                 if (progressContainer) progressContainer.classList.add('hidden');
@@ -1096,7 +1047,6 @@
 
                 playCardFlipAnimation();
 
-                // En çok puan toplayan ilişki karakterini belirle
                 let topArchetype = 'kader';
                 let maxScore = -1;
                 for (const [archetype, score] of Object.entries(scores)) {
@@ -1115,7 +1065,7 @@
 
                     if (demirkanMistakesBox && demirkanMistakesText) {
                         if (demirkanWrongCount > 0) {
-                            demirkanMistakesText.textContent = `2. Bölüm Yanlış Sayısı: ${demirkanWrongCount} ❌️`;
+                            demirkanMistakesText.textContent = `2. Bölüm Yanlış Sayısı: ${demirkanWrongCount} ❌`;
                             demirkanMistakesBox.classList.remove('hidden');
                         } else {
                             demirkanMistakesBox.classList.add('hidden');
@@ -1124,20 +1074,15 @@
                     
                     if (resultIcon) {
                         resultIcon.style.color = finalResult.iconColor;
-                        if (finalResult.iconColor === '#111111') {
-                            resultIcon.style.filter = 'drop-shadow(0 0 6px rgba(255,255,255,0.4))';
-                        } else {
-                            resultIcon.style.filter = 'none';
-                        }
+                        resultIcon.style.filter = finalResult.iconColor === '#111111'
+                            ? 'drop-shadow(0 0 6px rgba(255,255,255,0.4))'
+                            : 'none';
                     }
                 }
 
                 triggerRandomHearts(window.innerWidth / 2, window.innerHeight / 2, 34);
             }
 
-            // ==========================================
-            // 10. YENİDEN BAŞLATMA VE EKSTRA KUTLAMA
-            // ==========================================
             function showRabiaIntro() {
                 updateBackgroundForSection(0);
                 if (progressContainer) progressContainer.classList.add('hidden');
@@ -1171,13 +1116,10 @@
                 demirkanWrongCount = 0;
                 isTransitioning = false;
                 stopYingyangAudio();
-
                 showRabiaIntro();
             }
 
-            if (restartBtn) {
-                restartBtn.addEventListener('click', resetQuiz);
-            }
+            if (restartBtn) restartBtn.addEventListener('click', resetQuiz);
 
             if (celebrateBtn) {
                 celebrateBtn.addEventListener('click', () => {
@@ -1186,7 +1128,6 @@
                 });
             }
 
-            // İlk olarak Rabia giriş kartını göster
             showRabiaIntro();
         });
     </script>
