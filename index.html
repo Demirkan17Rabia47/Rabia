@@ -4,30 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rabia & Demirkan - Aşk Testi</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter & Playfair Display -->
+    <!-- Google Fonts: Inter & Playfair Display (Yüklenemezse sistem fontlarına düşer) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
     
+    <script>
+        // Görsel yüklenmeden önce tanımlanmalı ki onerror tetiklendiğinde ReferenceError oluşmasın
+        window.handleDefaultBgFallback = function(imgEl) {
+            const list = (imgEl.dataset.fallbacks || '').split(',').filter(Boolean);
+            if (list.length > 0) {
+                imgEl.src = list.shift();
+                imgEl.dataset.fallbacks = list.join(',');
+            } else {
+                imgEl.onerror = null;
+                imgEl.style.display = 'none';
+                const svgEl = document.getElementById('default-bg-svg');
+                if (svgEl) svgEl.classList.remove('hidden');
+            }
+        };
+
+        window.handleImageFallback = function(imgEl) {
+            const list = (imgEl.dataset.fallbacks || '').split(',').filter(Boolean);
+            if (list.length > 0) {
+                imgEl.src = list.shift();
+                imgEl.dataset.fallbacks = list.join(',');
+            } else {
+                imgEl.onerror = null;
+                imgEl.style.display = 'none';
+            }
+        };
+    </script>
+
     <style>
+        /* =========================================================
+           1. TAMAMEN BAĞIMSIZ SAF CSS (HARİCİ CDN GEREKTİRMEZ)
+           ========================================================= */
         *, *::before, *::after {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         html, body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #000000;
             color: #f1f5f9;
             width: 100%;
             min-height: 100vh;
             min-height: 100dvh;
-            margin: 0;
-            padding: 0;
             overflow-x: hidden;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            body {
+                padding: 1.5rem;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Varsayılan SVG boyut güvenlik kilidi (CDN yoksa bile devleşmeyi önler) */
+        svg {
+            max-width: 100%;
+            height: auto;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* Kalp Efektleri Sahnesi */
+        #heart-stage {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 50;
+            overflow: hidden;
         }
 
         /* 1. Bölüm ve Sonuç Ekranı Arka Plan Katmanı */
@@ -71,11 +133,25 @@
             height: 100vh;
             height: 100dvh;
             z-index: 0;
-            background: radial-gradient(circle at top right, #1e1b4b, #09090b 70%);
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.7s ease;
             overflow: hidden;
+        }
+
+        #demirkan-bg-art {
+            background: radial-gradient(circle at 25% 25%, rgba(29, 99, 184, 0.42), transparent 55%),
+                        radial-gradient(circle at 80% 75%, rgba(15, 23, 42, 0.95), #030712 80%);
+        }
+
+        #iliskimiz-bg-art {
+            background: radial-gradient(circle at 75% 20%, rgba(225, 29, 72, 0.32), transparent 50%),
+                        radial-gradient(circle at 20% 80%, rgba(148, 163, 184, 0.22), #09090b 75%);
+        }
+
+        #gelecegimiz-bg-art {
+            background: radial-gradient(circle at 50% 25%, rgba(190, 24, 93, 0.36), transparent 55%),
+                        radial-gradient(circle at 50% 85%, rgba(30, 58, 138, 0.38), #020617 85%);
         }
 
         .section-bg-art.active {
@@ -97,37 +173,548 @@
             pointer-events: none;
         }
 
-        .font-serif-romantic {
-            font-family: 'Playfair Display', Georgia, serif;
-        }
-
-        /* Cam efekti (Glassmorphism) kart */
-        .glass-card {
-            background: rgba(15, 15, 22, 0.60);
+        /* Sağ Üst Ses Kontrol Penceresi */
+        .audio-widget {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 60;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 1rem;
+            background: rgba(15, 15, 22, 0.78);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.65);
         }
 
-        /* Şık butonları için geçiş ve dokunma animasyonu */
+        .audio-btn {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.75rem;
+            border: none;
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .audio-btn:hover {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        .audio-btn:active {
+            transform: scale(0.94);
+        }
+
+        .audio-close-btn {
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 0.5rem;
+            border: none;
+            background: rgba(255, 255, 255, 0.06);
+            color: #cbd5e1;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .audio-close-btn:hover {
+            background: rgba(244, 63, 94, 0.35);
+            color: #ffffff;
+        }
+
+        .audio-vol-info {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            min-width: 46px;
+            justify-content: center;
+        }
+
+        .audio-reopen-btn {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 60;
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(15, 15, 22, 0.78);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            color: #fda4af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.65);
+        }
+
+        /* Ana Konteyner ve Başlık */
+        .app-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 36rem;
+            margin: auto;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .app-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        @media (min-width: 640px) {
+            .app-title {
+                font-size: 2.25rem;
+            }
+        }
+
+        .app-subtitle {
+            color: #cbd5e1;
+            font-size: 0.875rem;
+            margin-top: 0.4rem;
+        }
+
+        @media (min-width: 640px) {
+            .app-subtitle {
+                font-size: 1rem;
+            }
+        }
+
+        /* Cam Efekti Kart */
+        .glass-card {
+            background: rgba(15, 15, 22, 0.68);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        @media (min-width: 640px) {
+            .glass-card {
+                padding: 2rem;
+            }
+        }
+
+        /* İlerleme Çubuğu */
+        .progress-wrapper {
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            margin-bottom: 0.65rem;
+            font-weight: 500;
+        }
+
+        @media (min-width: 640px) {
+            .progress-header {
+                font-size: 0.875rem;
+            }
+        }
+
+        .section-pill {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            background: rgba(244, 63, 94, 0.2);
+            border: 1px solid rgba(251, 113, 133, 0.35);
+            color: #fecdd3;
+            font-weight: 600;
+        }
+
+        .counter-text {
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 0.5rem;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 20%;
+            background: linear-gradient(90deg, #f43f5e, #ec4899, #3b82f6);
+            border-radius: 9999px;
+            transition: width 0.5s ease;
+        }
+
+        /* Soru Metni ve Şıklar */
+        .question-heading {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.4;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .question-heading {
+                font-size: 1.5rem;
+            }
+        }
+
+        .options-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .options-two-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            padding-top: 0.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .options-two-col {
+                flex-direction: row;
+            }
+        }
+
         .option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            border-radius: 1rem;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            cursor: pointer;
+            font-family: inherit;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .option-btn:hover {
-            background: rgba(255, 255, 255, 0.14);
-            border-color: rgba(255, 255, 255, 0.35);
+        .option-btn-centered {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @media (min-width: 640px) {
+            .option-btn-centered {
+                width: 11rem;
+            }
+        }
+
+        .option-btn:hover, .option-btn-centered:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.38);
             transform: translateY(-2px);
         }
 
-        .option-btn:active {
+        .option-btn:active, .option-btn-centered:active {
             transform: scale(0.98);
         }
 
-        /* Kalp uçuş animasyonu */
+        .option-letter {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #fecdd3;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .option-btn:hover .option-letter,
+        .option-btn-centered:hover .option-letter {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        .option-label {
+            font-size: 0.925rem;
+            line-height: 1.4;
+        }
+
+        @media (min-width: 640px) {
+            .option-label {
+                font-size: 1rem;
+            }
+        }
+
+        /* Giriş, Geçiş ve Sonuç Kartları */
+        .center-screen {
+            text-align: center;
+            padding: 1.25rem 0;
+        }
+
+        @media (min-width: 640px) {
+            .center-screen {
+                padding: 1.75rem 0;
+            }
+        }
+
+        .icon-badge {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1rem auto;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.24), rgba(59, 130, 246, 0.2));
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .step-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            background: rgba(244, 63, 94, 0.2);
+            border: 1px solid rgba(251, 113, 133, 0.3);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #fecdd3;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .screen-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 0.25rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.3;
+        }
+
+        @media (min-width: 640px) {
+            .screen-title {
+                font-size: 1.875rem;
+            }
+        }
+
+        .screen-subtitle {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            max-width: 28rem;
+            margin: 0 auto 1.75rem auto;
+            line-height: 1.6;
+        }
+
+        @media (min-width: 640px) {
+            .screen-subtitle {
+                font-size: 1rem;
+            }
+        }
+
+        .quote-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1.75rem;
+        }
+
+        @media (min-width: 640px) {
+            .quote-box {
+                padding: 1.5rem;
+            }
+        }
+
+        .quote-text {
+            color: #e2e8f0;
+            font-size: 0.925rem;
+            line-height: 1.65;
+            font-style: italic;
+        }
+
+        @media (min-width: 640px) {
+            .quote-text {
+                font-size: 1rem;
+            }
+        }
+
+        .primary-btn {
+            padding: 0.875rem 1.75rem;
+            border-radius: 1rem;
+            border: none;
+            background: linear-gradient(90deg, #e11d48, #db2777);
+            color: #ffffff;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.925rem;
+            box-shadow: 0 10px 25px rgba(136, 19, 55, 0.45);
+            cursor: pointer;
+            transition: transform 0.2s, filter 0.2s;
+        }
+
+        .primary-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .primary-btn:active {
+            transform: scale(0.96);
+        }
+
+        .secondary-btn {
+            padding: 0.875rem 1.25rem;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            font-family: inherit;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .secondary-btn:hover {
+            background: rgba(255, 255, 255, 0.24);
+        }
+
+        .secondary-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Sonuç Ekranı Özel Düzeni */
+        .result-tagline {
+            color: #fda4af;
+            font-size: 0.85rem;
+            font-style: italic;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .result-card-body {
+            text-align: left;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-meta {
+            margin-top: 0.875rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #cbd5e1;
+        }
+
+        .match-badge {
+            padding: 0.25rem 0.65rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.12);
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .mistakes-box {
+            margin-top: 0.75rem;
+            text-align: center;
+        }
+
+        .mistakes-pill {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 0.75rem;
+            background: rgba(244, 63, 94, 0.2);
+            border: 1px solid rgba(251, 113, 133, 0.35);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #fecdd3;
+        }
+
+        .result-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        @media (min-width: 640px) {
+            .result-actions {
+                flex-direction: row;
+            }
+        }
+
+        .app-footer {
+            text-align: center;
+            margin-top: 1.25rem;
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        /* =========================================================
+           2. ANİMASYONLAR
+           ========================================================= */
         @keyframes floatHeart {
             0% {
                 opacity: 0;
@@ -154,7 +741,6 @@
             will-change: transform, opacity;
         }
 
-        /* İçerik geçiş animasyonu */
         @keyframes fadeSlideIn {
             from {
                 opacity: 0;
@@ -170,7 +756,6 @@
             animation: fadeSlideIn 0.45s ease-out forwards;
         }
 
-        /* Bölümler arası 3D Kart Geçiş Efekti */
         @keyframes cardFlipTransition {
             0% {
                 opacity: 0;
@@ -192,12 +777,12 @@
         }
     </style>
 </head>
-<body class="text-slate-100 flex items-center justify-center p-4 sm:p-6">
+<body>
 
     <!-- Kalp Efektleri Sahnesi -->
-    <div id="heart-stage" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+    <div id="heart-stage"></div>
 
-    <!-- 1. Bölüm ve Sonuç Ekranı Arka Plan Görseli (WhatsApp Image 2026-11-16 at 22.22.25.jpeg) -->
+    <!-- 1. Bölüm ve Sonuç Ekranı Arka Plan Görseli -->
     <div id="default-bg-art" class="custom-bg-art" aria-hidden="true">
         <img id="default-bg-img"
              src="./WhatsApp%20Image%202026-11-16%20at%2022.22.25.jpeg"
@@ -259,135 +844,115 @@
     <audio id="yingyang-audio" preload="none" loop></audio>
 
     <!-- Sağ Üst Mini Ses Ayar Penceresi -->
-    <div id="audio-control-widget" class="hidden fixed top-4 right-4 z-50 glass-card rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5 shadow-xl border border-white/20 transition-all duration-300">
-        <button id="vol-down-btn" type="button" aria-label="Sesi Azalt" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white font-bold text-base transition cursor-pointer">
-            −
-        </button>
-        <div class="flex items-center gap-1.5 px-1 text-xs font-semibold text-slate-200 min-w-[44px] justify-center">
-            <svg class="w-4 h-4 text-rose-300 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+    <div id="audio-control-widget" class="audio-widget hidden">
+        <button id="vol-down-btn" type="button" aria-label="Sesi Azalt" class="audio-btn">−</button>
+        <div class="audio-vol-info">
+            <svg width="16" height="16" style="color:#fda4af;flex-shrink:0;" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
             </svg>
             <span id="vol-level-text">%80</span>
         </div>
-        <button id="vol-up-btn" type="button" aria-label="Sesi Artır" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white font-bold text-base transition cursor-pointer">
-            +
-        </button>
-        <button id="close-audio-widget-btn" type="button" aria-label="Ses Penceresini Küçült" class="w-7 h-7 ml-0.5 rounded-lg bg-white/5 hover:bg-rose-500/30 active:scale-95 flex items-center justify-center text-slate-300 hover:text-white text-xs font-bold transition cursor-pointer">
-            ✕
-        </button>
+        <button id="vol-up-btn" type="button" aria-label="Sesi Artır" class="audio-btn">+</button>
+        <button id="close-audio-widget-btn" type="button" aria-label="Ses Penceresini Küçült" class="audio-close-btn">✕</button>
     </div>
 
     <!-- Küçültülmüş Ses Açma Butonu -->
-    <button id="reopen-audio-widget-btn" type="button" aria-label="Ses Ayarlarını Aç" class="hidden fixed top-4 right-4 z-50 glass-card w-11 h-11 rounded-2xl flex items-center justify-center text-rose-300 hover:text-white hover:bg-white/15 active:scale-95 shadow-xl border border-white/20 transition-all duration-300 cursor-pointer">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+    <button id="reopen-audio-widget-btn" type="button" aria-label="Ses Ayarlarını Aç" class="audio-reopen-btn hidden">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
         </svg>
     </button>
 
     <!-- Ana Uygulama Konteyneri -->
-    <main class="relative z-10 w-full max-w-xl mx-auto my-auto">
-        <header class="text-center mb-6">
-            <h1 class="font-serif-romantic text-3xl sm:text-4xl font-bold text-white tracking-tight">
-                Rabia &amp; Demirkan
-            </h1>
-            <p class="text-slate-300 text-sm sm:text-base mt-1.5">
-                Kalplerimizin hikayesini keşfeden özel aşk testi
-            </p>
+    <main class="app-container">
+        <header class="app-header">
+            <h1 class="app-title">Rabia &amp; Demirkan</h1>
+            <p class="app-subtitle">Kalplerimizin hikayesini keşfeden özel aşk testi</p>
         </header>
 
         <!-- Test Kartı -->
-        <section id="quiz-card" class="glass-card rounded-3xl p-6 sm:p-8 transition-all duration-300">
+        <section id="quiz-card" class="glass-card">
             
             <!-- Bölüm Bilgisi ve İlerleme Çubuğu -->
-            <div id="progress-container" class="mb-6">
-                <div class="flex flex-wrap justify-between items-center gap-2 text-xs sm:text-sm text-slate-300 mb-2.5 font-medium">
-                    <span id="section-badge" class="px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/30 text-rose-200 font-semibold">
-                        1. Bölüm: Rabia Hakkında
-                    </span>
-                    <span id="question-counter" class="text-slate-200 font-semibold">
-                        Soru 1 / 5
-                    </span>
+            <div id="progress-container" class="progress-wrapper">
+                <div class="progress-header">
+                    <span id="section-badge" class="section-pill">1. Bölüm: Rabia Hakkında</span>
+                    <span id="question-counter" class="counter-text">Soru 1 / 5</span>
                 </div>
-                <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                    <div id="progress-bar" class="h-full bg-gradient-to-r from-rose-500 via-pink-500 to-blue-500 rounded-full transition-all duration-500" style="width: 20%"></div>
+                <div class="progress-track">
+                    <div id="progress-bar" class="progress-fill"></div>
                 </div>
             </div>
 
             <!-- Soru Alanı -->
             <div id="question-view" class="animate-question">
-                <h2 id="question-text" class="font-serif-romantic text-xl sm:text-2xl font-semibold text-white leading-snug mb-6"></h2>
-                <div id="options-list" class="space-y-3"></div>
+                <h2 id="question-text" class="question-heading"></h2>
+                <div id="options-list" class="options-stack"></div>
             </div>
 
             <!-- Bölümler Arası Kart Geçiş Ekranı -->
-            <div id="transition-view" class="hidden text-center py-6 sm:py-8">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-rose-500/20 to-blue-500/20 border border-white/25 flex items-center justify-center shadow-lg">
-                    <svg class="w-8 h-8 text-rose-300" viewBox="0 0 24 24" fill="currentColor">
+            <div id="transition-view" class="center-screen hidden">
+                <div class="icon-badge">
+                    <svg width="32" height="32" style="color:#fda4af;" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                     </svg>
                 </div>
-                <span id="transition-step-badge" class="text-xs uppercase tracking-widest text-rose-300 font-semibold">
-                    Sıradaki Bölüm
-                </span>
-                <h2 id="transition-title" class="font-serif-romantic text-2xl sm:text-3xl font-bold text-white mt-2 mb-3"></h2>
-                <p id="transition-subtitle" class="text-slate-300 text-sm sm:text-base max-w-md mx-auto leading-relaxed mb-7"></p>
-                <button id="continue-section-btn" type="button" class="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-semibold text-sm sm:text-base shadow-lg shadow-rose-900/40 transition active:scale-95 cursor-pointer">
+                <span id="transition-step-badge" class="step-tag">Sıradaki Bölüm</span>
+                <h2 id="transition-title" class="screen-title"></h2>
+                <p id="transition-subtitle" class="screen-subtitle"></p>
+                <button id="continue-section-btn" type="button" class="primary-btn">
                     Sorulara Geç →
                 </button>
             </div>
 
             <!-- Rabia İçin Giriş Yazısı Kartı (1. Bölüm Başı) -->
-            <div id="rabia-intro-view" class="hidden text-center py-5 sm:py-7">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-rose-500/25 to-pink-500/20 border border-rose-300/30 flex items-center justify-center shadow-lg">
-                    <svg class="w-8 h-8 text-rose-400" viewBox="0 0 24 24" fill="currentColor">
+            <div id="rabia-intro-view" class="center-screen hidden">
+                <div class="icon-badge">
+                    <svg width="32" height="32" style="color:#fb7185;" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                     </svg>
                 </div>
-                <span class="inline-block px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/30 text-xs uppercase tracking-widest text-rose-200 font-semibold mb-2">
-                    1. Bölüm Başlangıcı
-                </span>
-                <h2 id="rabia-intro-title" class="font-serif-romantic text-2xl sm:text-3xl font-bold text-white mt-1 mb-4">
-                    TO MY SOULMATE <span class="font-sans tracking-normal">&lt;3</span>
-                </h2>
-                <div class="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6 mb-7 text-center">
-                    <p id="rabia-intro-text" class="text-slate-200 text-sm sm:text-base leading-relaxed italic">
-                        "Sevgilim hoş geldin bunu sana yanii bize hazırladım umarım burdan çıktığında yüzünde bir gülümsemeyle ayrılırsın <span class="font-sans not-italic">&lt;3&lt;3&lt;3</span>"
+                <span class="step-tag">1. Bölüm Başlangıcı</span>
+                <h2 class="screen-title">TO MY SOULMATE &lt;3</h2>
+                <div class="quote-box">
+                    <p class="quote-text">
+                        "Sevgilim hoş geldin bunu sana yanii bize hazırladım umarım burdan çıktığında yüzünde bir gülümsemeyle ayrılırsın &lt;3&lt;3&lt;3"
                     </p>
                 </div>
-                <button id="start-rabia-btn" type="button" class="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-semibold text-sm sm:text-base shadow-lg shadow-rose-900/40 transition active:scale-95 cursor-pointer">
+                <button id="start-rabia-btn" type="button" class="primary-btn">
                     1. Bölüme Başla →
                 </button>
             </div>
 
             <!-- Sonuç Ekranı -->
-            <div id="result-view" class="hidden text-center animate-question">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shadow-lg">
-                    <svg id="result-icon" class="w-9 h-9 text-rose-500" viewBox="0 0 24 24" fill="currentColor">
+            <div id="result-view" class="center-screen hidden animate-question">
+                <div class="icon-badge">
+                    <svg id="result-icon" width="36" height="36" style="color:#f43f5e;" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                     </svg>
                 </div>
 
-                <h2 id="result-title" class="font-serif-romantic text-2xl sm:text-3xl font-bold text-white mt-1 mb-2"></h2>
-                <p id="result-tagline" class="text-rose-300 text-xs sm:text-sm font-medium italic mb-4"></p>
+                <h2 id="result-title" class="screen-title"></h2>
+                <p id="result-tagline" class="result-tagline"></p>
                 
-                <div class="text-left text-slate-200 text-sm sm:text-base leading-relaxed mb-6 bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3">
-                    <p class="text-rose-100/95 text-sm sm:text-base leading-relaxed italic">
-                        "Sevgili ruh eşim umarım bu test kalbinde hoş bir çarpıntı, yüzünde hoş bir gülümseme, aklına sokucağım güzel bir düşünce bırakır Seni çok ama çok seviyorum seninle birlikte çok savaşa gireceğiz kaybetsek bile birlikte kaybedeceğiz hiç ayrılmayacağız. İyi bir insan iyi bir sevgili olamayabilirim ama senin için savaşacağım.. seni çok seviyorum <span class="font-sans not-italic">&lt;3&lt;3</span>"
+                <div class="result-card-body">
+                    <p class="quote-text" style="color:#ffe4e6;">
+                        "Sevgili ruh eşim umarım bu test kalbinde hoş bir çarpıntı, yüzünde hoş bir gülümseme, aklına sokucağım güzel bir düşünce bırakır Seni çok ama çok seviyorum seninle birlikte çok savaşa gireceğiz kaybetsek bile birlikte kaybedeceğiz hiç ayrılmayacağız. İyi bir insan iyi bir sevgili olamayabilirim ama senin için savaşacağım.. seni çok seviyorum &lt;3&lt;3"
                     </p>
-                    <div class="pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300">
-                        <span id="result-motto" class="font-medium text-rose-200"></span>
-                        <span id="result-match-rate" class="px-2.5 py-1 rounded-lg bg-white/10 font-semibold text-white"></span>
+                    <div class="result-meta">
+                        <span id="result-motto" style="font-weight:500;color:#fecdd3;"></span>
+                        <span id="result-match-rate" class="match-badge"></span>
                     </div>
-                    <div id="demirkan-mistakes-box" class="hidden pt-2 text-center">
-                        <span id="demirkan-mistakes-text" class="inline-block px-3 py-1 rounded-xl bg-rose-500/20 border border-rose-400/30 text-xs font-semibold text-rose-200"></span>
+                    <div id="demirkan-mistakes-box" class="mistakes-box hidden">
+                        <span id="demirkan-mistakes-text" class="mistakes-pill"></span>
                     </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                    <button id="celebrate-btn" type="button" class="px-5 py-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-white font-medium text-sm transition active:scale-95 cursor-pointer">
+                <div class="result-actions">
+                    <button id="celebrate-btn" type="button" class="secondary-btn">
                         Kalp Yağdır ✨
                     </button>
-                    <button id="restart-btn" type="button" class="px-6 py-3 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-semibold text-sm shadow-lg shadow-rose-900/40 transition active:scale-95 cursor-pointer">
+                    <button id="restart-btn" type="button" class="primary-btn">
                         Testi Yeniden Çöz
                     </button>
                 </div>
@@ -396,38 +961,12 @@
         </section>
 
         <!-- Alt Bilgi -->
-        <footer class="text-center mt-5 text-xs text-slate-400">
+        <footer class="app-footer">
             Rabia &amp; Demirkan için özel hazırlandı • 4 Bölüm, 20 Romantik Soru
         </footer>
     </main>
 
     <script>
-        // 1. bölüm görseli bulunamazsa alternatifleri dener, hiçbiri yoksa yedek SVG çizimini gösterir
-        function handleDefaultBgFallback(imgEl) {
-            const list = (imgEl.dataset.fallbacks || '').split(',').filter(Boolean);
-            if (list.length > 0) {
-                imgEl.src = list.shift();
-                imgEl.dataset.fallbacks = list.join(',');
-            } else {
-                imgEl.onerror = null;
-                imgEl.style.display = 'none';
-                const svgEl = document.getElementById('default-bg-svg');
-                if (svgEl) svgEl.classList.remove('hidden');
-            }
-        }
-
-        // Diğer bölümlerin görselleri bulunamazsa alternatifleri dener, hiçbiri yoksa kırık ikon yerine gizler
-        function handleImageFallback(imgEl) {
-            const list = (imgEl.dataset.fallbacks || '').split(',').filter(Boolean);
-            if (list.length > 0) {
-                imgEl.src = list.shift();
-                imgEl.dataset.fallbacks = list.join(',');
-            } else {
-                imgEl.onerror = null;
-                imgEl.style.display = 'none';
-            }
-        }
-
         const ALLOWED_HEART_COLORS = [
             { hex: '#111111', stroke: 'rgba(255, 255, 255, 0.55)', glow: 'drop-shadow(0 0 6px rgba(255, 255, 255, 0.35))' },
             { hex: '#FFFFFF', stroke: 'rgba(0, 0, 0, 0.15)', glow: 'drop-shadow(0 4px 10px rgba(255, 255, 255, 0.45))' },
@@ -930,29 +1469,22 @@
                     optionsList.innerHTML = '';
 
                     if (currentQ.isTwoOptionCentered || currentQ.options.length === 2) {
-                        optionsList.className = 'flex flex-col sm:flex-row justify-center items-center gap-4 pt-2';
+                        optionsList.className = 'options-two-col';
                     } else {
-                        optionsList.className = 'space-y-3';
+                        optionsList.className = 'options-stack';
                     }
 
                     currentQ.options.forEach((option, index) => {
                         const btn = document.createElement('button');
                         btn.type = 'button';
-
-                        if (currentQ.isTwoOptionCentered || currentQ.options.length === 2) {
-                            btn.className = 'option-btn w-full sm:w-44 py-4 px-6 rounded-2xl flex items-center justify-center gap-3 text-slate-100 group cursor-pointer font-semibold';
-                        } else {
-                            btn.className = 'option-btn w-full text-left p-4 rounded-2xl flex items-center gap-3.5 text-slate-100 group cursor-pointer';
-                        }
+                        btn.className = (currentQ.isTwoOptionCentered || currentQ.options.length === 2)
+                            ? 'option-btn-centered'
+                            : 'option-btn';
                         
                         const letters = ['A', 'B', 'C', 'D'];
                         btn.innerHTML = `
-                            <span class="w-8 h-8 rounded-xl bg-white/10 group-hover:bg-white/20 border border-white/15 flex items-center justify-center text-xs font-bold text-rose-200 shrink-0 transition">
-                                ${letters[index]}
-                            </span>
-                            <span class="text-sm sm:text-base leading-snug">
-                                ${option.text}
-                            </span>
+                            <span class="option-letter">${letters[index]}</span>
+                            <span class="option-label">${option.text}</span>
                         `;
 
                         btn.addEventListener('click', (e) => handleOptionSelect(e, option, btn));
@@ -969,8 +1501,8 @@
                 const clickX = event.clientX || (rect.left + rect.width / 2);
                 const clickY = event.clientY || (rect.top + rect.height / 2);
 
-                btnElement.style.background = 'rgba(255, 255, 255, 0.22)';
-                btnElement.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+                btnElement.style.background = 'rgba(255, 255, 255, 0.24)';
+                btnElement.style.borderColor = 'rgba(255, 255, 255, 0.55)';
 
                 let sectionTwoSymbol = null;
                 if (currentSectionIndex === 1) {
